@@ -11,7 +11,6 @@ import java.util.Properties;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.ListBlobItem;
 import com.microsoft.azure.storage.file.CloudFile;
 import com.microsoft.azure.storage.file.CloudFileClient;
 import com.microsoft.azure.storage.file.CloudFileDirectory;
@@ -56,8 +55,8 @@ public class Arquivo implements IAzure{
 		}
 	}
 	
-	
-	public Iterable<ListFileItem> listarArquivos(String nomeArquivo) throws DadosException {
+	@Override
+	public Iterator<ListFileItem> listarArquivos(String nomeArquivo) throws DadosException {
 		 Iterable<ListFileItem> listFile = diretorioRaiz.listFilesAndDirectories(nomeArquivo, null, null);
 		 Iterator<ListFileItem> iterator = listFile.iterator();
 		 ListFileItem file;
@@ -65,7 +64,7 @@ public class Arquivo implements IAzure{
 			file=iterator.next();
 	        System.out.println(file.getUri() + " "); 
 		 }
-        return listFile;
+        return iterator;
 	}
 
 	@Override

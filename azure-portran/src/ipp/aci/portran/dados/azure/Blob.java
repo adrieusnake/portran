@@ -53,8 +53,8 @@ public class Blob implements IAzure{
 			e.printStackTrace();
 		}
 	}
-	
-	public Iterable<ListBlobItem> listarArquivos(String nomeArquivo) throws DadosException {
+	@Override
+	public Iterator<ListBlobItem> listarArquivos(String nomeArquivo) throws DadosException {
 		 Iterable<ListBlobItem> listBlob = container.listBlobs(nomeArquivo);
 		 Iterator<ListBlobItem> iterator = listBlob.iterator();
 		 ListBlobItem blob;
@@ -62,7 +62,7 @@ public class Blob implements IAzure{
 			blob=iterator.next();
 	        System.out.println(blob.getUri() + " "); 
 		 }
-         return listBlob;
+         return iterator;
 	}
 	
 	@Override
