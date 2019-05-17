@@ -1,4 +1,4 @@
-package azureVersionSixTest;
+package ipp.aci.portran.dados.azure;
 
 //import ipp.aci.pdsiframework.util.excecao.DadosException;
  

@@ -1,28 +1,29 @@
-package azureVersionSixTest;
+package ipp.aci.portran.dados.azure;
 
 
-import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
+import java.util.Iterator;
 import java.util.Properties;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
+import com.microsoft.azure.storage.blob.ListBlobItem;
 import com.microsoft.azure.storage.file.CloudFile;
 import com.microsoft.azure.storage.file.CloudFileClient;
 import com.microsoft.azure.storage.file.CloudFileDirectory;
 import com.microsoft.azure.storage.file.CloudFileShare;
+import com.microsoft.azure.storage.file.ListFileItem;
 
 public class Arquivo implements IAzure{
 
 	private Properties prop;
 	private String storageConnectionString;
 	private String nomeContainer;
-	private String downloadDir;
+	//private String downloadDir;
 	private String uploadDir;
 	private CloudStorageAccount contaAzure;
 	CloudFileClient fileClient;
@@ -37,7 +38,7 @@ public class Arquivo implements IAzure{
 		storageConnectionString = prop.getProperty("storageConnectionString");
 		nomeContainer = prop.getProperty("container");
 		uploadDir = prop.getProperty("diretorioUpload");
-		downloadDir = prop.getProperty("diretorioDownload");
+		//downloadDir = prop.getProperty("diretorioDownload");
 		try {
 			contaAzure = CloudStorageAccount.parse(storageConnectionString);
 			fileClient = contaAzure.createCloudFileClient();
@@ -55,26 +56,18 @@ public class Arquivo implements IAzure{
 		}
 	}
 	
-	public void alterarArquivo(String nomeArquivo) throws URISyntaxException, StorageException, IOException {
-		 criarArquivo(nomeArquivo);
-	}
-	public void criarArquivo(String nomeArquivo) throws URISyntaxException, StorageException, IOException {
-            nomeArquivo = nomeArquivo.replace('\\', '/');
-            String nomeSplit[] = nomeArquivo.split("/");
-            int size=nomeSplit.length;
-    		arquivo = diretorioArquivos.getFileReference(nomeSplit[size-1]);
-	        arquivo.uploadFromFile(nomeArquivo);
-	}
-	public String consultarArquivo(String nomeArquivo) throws URISyntaxException, StorageException, IOException  {
-		nomeArquivo = nomeArquivo.replace('\\', '/');
-        String nomeSplit[] = nomeArquivo.split("/");
-        int size=nomeSplit.length;
-		arquivo = diretorioArquivos.getFileReference(nomeSplit[size-1]);
-		arquivo.downloadToFile(downloadDir+nomeArquivo);
-		System.out.println(arquivo.downloadText());
-        return downloadDir+nomeArquivo;
-	}
 	
+	public Iterable<ListFileItem> listarArquivos(String nomeArquivo) throws DadosException {
+		 Iterable<ListFileItem> listFile = diretorioRaiz.listFilesAndDirectories(nomeArquivo, null, null);
+		 Iterator<ListFileItem> iterator = listFile.iterator();
+		 ListFileItem file;
+		 while (iterator.hasNext()) {
+			file=iterator.next();
+	        System.out.println(file.getUri() + " "); 
+		 }
+        return listFile;
+	}
+
 	@Override
 	public void excluirArquivo(String nomeArquivo) throws DadosException {
 		nomeArquivo = nomeArquivo.replace('\\', '/');
@@ -113,6 +106,7 @@ public class Arquivo implements IAzure{
 			throw new DadosException();
 		} catch (IOException e) {
 			e.printStackTrace();
+			throw new DadosException();
 		}
 	}
 
@@ -134,8 +128,8 @@ public class Arquivo implements IAzure{
 			throw new DadosException();
 		} catch (IOException e) {
 			e.printStackTrace();
+			throw new DadosException();
 		}
-		return null;
 	}
 	
 	
