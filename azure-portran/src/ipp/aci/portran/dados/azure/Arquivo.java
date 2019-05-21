@@ -220,25 +220,19 @@ public class Arquivo implements IAzure {
 	 * 
 	 */
 	@Override
-	public String consultarArquivo(String baseDir, String nomeArquivo) throws DadosException {
+	public byte[] consultarArquivo(String baseDir, String nomeArquivo) throws DadosException {
 		IniciarAzure();
 		try {
 			diretorioArquivos = diretorioRaiz.getDirectoryReference(baseDir);
 			arquivo = diretorioArquivos.getFileReference(nomeArquivo);
-			//arquivo.downloadToFile(downloadDir + nomeArquivo);
 			int size = arquivo.getStreamMinimumReadSizeInBytes();
 			byte[] buffer = new byte[size]; 
 			arquivo.downloadToByteArray(buffer,0);
-			System.out.println(buffer);
-			System.out.println(arquivo.downloadText());
-			return downloadDir + nomeArquivo;
+			return buffer;
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 			throw new DadosException();
 		} catch (StorageException e) {
-			e.printStackTrace();
-			throw new DadosException();
-		} catch (IOException e) {
 			e.printStackTrace();
 			throw new DadosException();
 		}

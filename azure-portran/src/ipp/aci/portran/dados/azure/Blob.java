@@ -190,12 +190,16 @@ public class Blob implements IAzure {
 	 * 
 	 */
 	@Override
-	public String consultarArquivo(String baseDir, String nomeArquivo) throws DadosException {
+	public byte[] consultarArquivo(String baseDir, String nomeArquivo) throws DadosException {
 		iniciarAzure();
 		try {
 			blockBlob = container.getBlockBlobReference(nomeArquivo);
 			blockBlob.downloadToFile(baseDir + nomeArquivo);
-			return baseDir + nomeArquivo;
+			
+			int size = blockBlob.getStreamMinimumReadSizeInBytes();
+			byte[] buffer = new byte[size];
+			blockBlob.downloadToByteArray(buffer, 0);
+			return buffer;
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 			throw new DadosException();

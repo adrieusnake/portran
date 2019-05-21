@@ -11,7 +11,7 @@ public interface IAzure {
 
 	public void criarArquivo(byte[] blob, String baseDir, String nomeArquivo) throws DadosException;
 
-	public String consultarArquivo(String baseDir, String nomeArquivo) throws DadosException;
+	public byte[] consultarArquivo(String baseDir, String nomeArquivo) throws DadosException;
 
 	public void excluirArquivo(String baseDir, String nomeArquivo) throws DadosException;
 }
