@@ -19,8 +19,7 @@ import com.microsoft.azure.storage.blob.ListBlobItem;
 import com.microsoft.azure.storage.file.CloudFile;
 import com.microsoft.azure.storage.file.CloudFileDirectory;
 
-
-public class Blob implements IAzure{
+public class Blob implements IAzure {
 
 	private Properties prop;
 	private String storageConnectionString;
@@ -34,8 +33,8 @@ public class Blob implements IAzure{
 	CloudFile arquivo;
 	CloudBlockBlob blockBlob;
 	InputStream inputStream;
-	
-	public Blob() throws FileNotFoundException, IOException {
+
+	private void iniciarAzure() throws DadosException {
 		try {
 			prop = new Properties();
 			prop.load(new FileInputStream("src/resources/config.properties"));
@@ -47,77 +46,121 @@ public class Blob implements IAzure{
 			container.createIfNotExists();
 		} catch (InvalidKeyException e) {
 			e.printStackTrace();
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		} catch (StorageException e) {
-			e.printStackTrace();
-		}
-	}
-	@Override
-	public Iterator<ListBlobItem> listarArquivos(String nomeArquivo) throws DadosException {
-		 Iterable<ListBlobItem> listBlob = container.listBlobs(nomeArquivo);
-		 Iterator<ListBlobItem> iterator = listBlob.iterator();
-		 ListBlobItem blob;
-		 while (iterator.hasNext()) {
-			blob=iterator.next();
-	        System.out.println(blob.getUri() + " "); 
-		 }
-         return iterator;
-	}
-	
-	@Override
-	public void excluirArquivo(String nomeArquivo) throws DadosException {
-		try {
-            nomeArquivo = nomeArquivo.replace('\\', '/');
-            String nomeSplit[] = nomeArquivo.split("/");
-            int size=nomeSplit.length;
-            blockBlob = container.getBlockBlobReference(nomeSplit[size-1]);
-            blockBlob.deleteIfExists();
+			throw new DadosException();
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 			throw new DadosException();
 		} catch (StorageException e) {
 			e.printStackTrace();
 			throw new DadosException();
-		}
-	}
-
-	@Override
-	public void alterarArquivo(byte[] blob, String nomeArquivo) throws DadosException {
-		criarArquivo(blob,nomeArquivo);	
-	}
-
-	@Override
-	public void criarArquivo(byte[] blob, String nomeArquivo) throws DadosException {
-        try {
-            nomeArquivo = nomeArquivo.replace('\\', '/');
-            String nomeSplit[] = nomeArquivo.split("/");
-            int size=nomeSplit.length;
-            blockBlob = container.getBlockBlobReference(nomeSplit[size-1]);
-            inputStream = new ByteArrayInputStream(blob);
-            blockBlob.upload(inputStream,blob.length);
-        } catch (URISyntaxException e) {
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-			throw new DadosException();
-		} catch (StorageException e) {
-			e.printStackTrace();
-			throw new DadosException();
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-			throw new DadosException();
 		}
 	}
 
+	/**
+	 * 
+	 * Método para listar os arquivos na nuvem
+	 * 
+	 * @param expRegular expressao regular para selecao dos arquivos a serem
+	 *                   excluidos do diretorio da nuvem
+	 * 
+	 * @throws DadosException
+	 * 
+	 */
+
+	public Iterator<ListBlobItem> listarArquivos(String nomeArquivo) throws DadosException {
+		iniciarAzure();
+		Iterable<ListBlobItem> listBlob = container.listBlobs(nomeArquivo);
+		Iterator<ListBlobItem> iterator = listBlob.iterator();
+		ListBlobItem blob;
+		while (iterator.hasNext()) {
+			blob = iterator.next();
+			System.out.println(blob.getUri() + " ");
+		}
+		return iterator;
+	}
+
+	/**
+	 * 
+	 * Método para excluir um arquivo na nuvem
+	 * 
+	 * @param baseDir    diretório do arquivo na nuvem, por exemplo "/motoristas/"
+	 *                   ou "/veiculos/"
+	 * 
+	 * @param expRegular expressao regular para selecao dos arquivos a serem
+	 *                   excluidos do diretorio da nuvem
+	 * 
+	 * @throws DadosException
+	 * 
+	 */
 	@Override
-	public String consultarArquivo(String baseDir, String nomeArquivo) throws DadosException {
+	public void excluirArquivo(String baseDir,String nomeArquivo) throws DadosException {
+		iniciarAzure();
 		try {
 			nomeArquivo = nomeArquivo.replace('\\', '/');
-	        String nomeSplit[] = nomeArquivo.split("/");
-	        int size=nomeSplit.length;
-			blockBlob = container.getBlockBlobReference(nomeSplit[size-1]);
-	        blockBlob.downloadToFile(baseDir+nomeArquivo);
-	        return baseDir+nomeArquivo;
-		 } catch (URISyntaxException e) {
+			String nomeSplit[] = nomeArquivo.split("/");
+			int size = nomeSplit.length;
+			blockBlob = container.getBlockBlobReference(nomeSplit[size - 1]);
+			blockBlob.deleteIfExists();
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+			throw new DadosException();
+		} catch (StorageException e) {
+			e.printStackTrace();
+			throw new DadosException();
+		}
+	}
+
+	/**
+	 * 
+	 * Método para sobrescrever um arquivo na nuvem
+	 *
+	 * 
+	 * 
+	 * @param blob        conteúdo do arquivo
+	 * 
+	 * @param baseDir     diretório do arquivo na nuvem, por exemplo "/motoristas/"
+	 *                    ou "/veiculos/"
+	 * 
+	 * @param nomeArquivo nome do arquivo de imagem com sua extensão
+	 * 
+	 * @throws DadosException
+	 * 
+	 */
+	@Override
+	public void alterarArquivo(byte[] blob, String baseDir, String nomeArquivo) throws DadosException {
+		criarArquivo(blob, baseDir, nomeArquivo);
+	}
+
+	/**
+	 * 
+	 * Método para criar um arquivo na nuvem
+	 *
+	 * 
+	 * 
+	 * @param blob        conteúdo do arquivo
+	 * 
+	 * @param baseDir     diretório do arquivo na nuvem, por exemplo "/motoristas/"
+	 *                    ou "/veiculos/"
+	 * 
+	 * @param nomeArquivo nome do arquivo de imagem com sua extensão
+	 * 
+	 * @throws DadosException
+	 * 
+	 */
+	@Override
+	public void criarArquivo(byte[] blob, String baseDir, String nomeArquivo) throws DadosException {
+		iniciarAzure();
+		try {
+			blockBlob = container.getBlockBlobReference(nomeArquivo);
+			inputStream = new ByteArrayInputStream(blob);
+			blockBlob.upload(inputStream, blob.length);
+		} catch (URISyntaxException e) {
 			e.printStackTrace();
 			throw new DadosException();
 		} catch (StorageException e) {
@@ -128,6 +171,40 @@ public class Blob implements IAzure{
 			throw new DadosException();
 		}
 	}
-	
-	
+
+	/**
+	 * 
+	 * Método para buscar um arquivo na nuvem e baixa-lo para um diretorio de
+	 * download local
+	 *
+	 * 
+	 * 
+	 * @param baseDir     diretório do arquivo na nuvem, por exemplo "/motoristas/"
+	 *                    ou "/veiculos/"
+	 * 
+	 * @param nomeArquivo nome do arquivo de imagem com sua extensão
+	 * 
+	 * @return nome do arquivo gravado no diretório local com caminho completo
+	 * 
+	 * @throws DadosException
+	 * 
+	 */
+	@Override
+	public String consultarArquivo(String baseDir, String nomeArquivo) throws DadosException {
+		iniciarAzure();
+		try {
+			blockBlob = container.getBlockBlobReference(nomeArquivo);
+			blockBlob.downloadToFile(baseDir + nomeArquivo);
+			return baseDir + nomeArquivo;
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+			throw new DadosException();
+		} catch (StorageException e) {
+			e.printStackTrace();
+			throw new DadosException();
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new DadosException();
+		}
+	}
 }
